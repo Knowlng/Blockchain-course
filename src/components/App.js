@@ -1,7 +1,11 @@
 import React, { Component } from 'react'
 import Web3 from 'web3';
-import './App.css';
 import Marketplace from '../abis/Marketplace.json';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import NavigationMenu from './NavigationMenu/NavigationMenu.js';
+import LayoutManager from './LayoutManager/LayoutManager.js';
+import AddProduct from './AddProduct/AddProduct.js';
+import Main from './Main/Main';
 
 class App extends Component {
 
@@ -30,10 +34,32 @@ class App extends Component {
     if(networkData) {
       const marketplace = web3.eth.Contract(Marketplace.abi, networkData.address);
       console.log(marketplace);
+      this.setState({ marketplace });
+      this.setState({ loading: false });
     } else {
       window.alert('Marketplace contract not deployed to detected network');
     }
   }
+
+  createProduct = (name, price) => {
+    this.setState({ loading: true });
+
+    this.state.marketplace.methods
+      .createProduct(name, price)
+      .send({ from: this.state.account })
+      .on('transactionHash', (hash) => {
+        console.log("Transaction Hash:", hash);
+      })
+      .on('receipt', (receipt) => {
+        console.log("Transaction Successful:", receipt);
+        this.setState({ loading: false });
+      })
+      .on('error', (error) => {
+        console.error("Transaction Failed:", error);
+        this.setState({ loading: false });
+      });
+  };
+
 
   constructor(props) {
     super(props);
@@ -43,11 +69,31 @@ class App extends Component {
       products: [],
       loading: true
     }
+    this.createProduct = this.createProduct.bind(this);
   }
 
   render() {
     return (
-      <p>{this.state.account}</p>
+      <Router>
+        <div>
+          <LayoutManager
+            account={this.state.account}
+            loading={this.state.loading}
+            Navigation={NavigationMenu}
+            Content={() => (
+            <Switch>
+              <Route exact path="/" component={Main} />
+              <Route 
+              path="/addProduct" 
+              render={(props) => (
+                <AddProduct {...props} createProduct={this.createProduct} />
+              )}
+          />
+            </Switch>
+          )}
+          />
+        </div>
+      </Router>
     );
   }
 }

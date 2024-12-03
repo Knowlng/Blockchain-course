@@ -1,0 +1,21 @@
+p {
+    text-align: center;
+}
+
+h1 {
+    text-align: center;
+}
+
+.main-wrapper {
+    margin-top: 50px;
+}
+
+.picture-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.landing-picture {
+    width: 800px;
+    height: 700px;
+}
